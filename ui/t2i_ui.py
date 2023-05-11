@@ -4,7 +4,7 @@ import discord
 
 class Detailpaint(ui.Modal, title='Detailpaint'):
     prompt = ui.TextInput(label='prompt(正面提詞)', style=discord.TextStyle.paragraph)
-    negative_prompt = ui.TextInput(label="negative prompt(負面提詞)", style=discord.TextStyle.paragraph)
+    negative_prompt = ui.TextInput(label="negative prompt(負面提詞)", style=discord.TextStyle.paragraph, default="nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts,signature, watermark, username, blurry")
     size = ui.TextInput(label="image size(圖像大小 widthxheight，最大為1024x1024)", style=discord.TextStyle.short, placeholder="512x512", default="512x512")
     sampler = ui.TextInput(label="sampler(取樣器)", style=discord.TextStyle.short, placeholder="Euler, Euler a ....", default="DPM++ SDE Karras")
     CFG = ui.TextInput(label="CFG(提示詞相關性，越高則模型自由度越低(1~30)。)",style=discord.TextStyle.short, placeholder="1-30", default="7", max_length=2)

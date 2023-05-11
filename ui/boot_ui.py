@@ -1,7 +1,7 @@
 import discord
 
 class Bootstrap(discord.ui.View):
-    def __init__(self, manageClass, paintClass, modalID, modal, timeout: float | None = 300):
+    def __init__(self, manageClass, paintClass, modalID, modal, timeout=300):
         super().__init__(timeout=timeout)
         self.modalID = modalID
         self.paintClass = paintClass

@@ -42,8 +42,11 @@ class paintClass():
         self.payloadJson["prompt"] = prompt
         self.payloadJson["negative_prompt"] = self.defaultPara["negative_prompt"]
         self.payloadJson["sampler_name"] = self.defaultPara["sampler_name"]
+        self.payloadJson["sampler_index"] = self.defaultPara["sampler_index"]
         self.payloadJson["batch_size"] = self.defaultPara["batch_size"]
         self.payloadJson["cfg_scale"] = self.defaultPara["cfg_scale"]
+        self.payloadJson["width"] = self.defaultPara["width"]
+        self.payloadJson["height"] = self.defaultPara["height"]
 
         return self.txt2img(self.payloadJson)
 
@@ -51,12 +54,12 @@ class paintClass():
         self.payloadJson["prompt"] = detailJson["prompt"]
         self.payloadJson["negative_prompt"] = detailJson["ng_prompt"]
         self.payloadJson["sampler_name"] = detailJson["sampler"]
+        self.payloadJson["sampler_index"] = detailJson["sampler"]
         self.payloadJson["width"] = detailJson["width"]
         self.payloadJson["height"] = detailJson["height"]
         self.payloadJson["cfg_scale"] = detailJson["CFG"]
-        self.payloadJson["sampler_index"] = detailJson["sampler"]
-
         self.payloadJson["batch_size"] = self.defaultPara["batch_size"]
+        
         return self.txt2img(self.payloadJson)
         
     def txt2img(self, jsonData):

@@ -3,7 +3,7 @@
 import discord
 import json
 from botClient import botClient
-from ui.t2i_ui import Easypaint_ui, Detailpaint_ui
+from ui.t2i_ui import T2i_ui
 from ui.sdselect_ui import select_ui
 from sdConnecter import sdConnecter
 from authManagement import authManagement
@@ -21,18 +21,19 @@ sdConnecter = sdConnecter()
 authManagement = authManagement()
 client = botClient(sdConnecter.getCurrModelName())
 tree = client.getTree()
+t2i_ui = T2i_ui()
 
 @tree.command(name="easypaint", description="less parameter mode")
 async def easypaint(interaction: discord.Interaction):
     if authManagement.checkGuild(str(interaction.guild_id)):
-        await interaction.response.send_modal(Easypaint_ui(sdConnecter))
+        await interaction.response.send_modal(t2i_ui.createEasypaintui(sdConnecter))
     else:
         await interaction.response.send_message("指揮官，這個伺服器沒有權限使用這個指令。請使用/help查看詳細說明", ephemeral=True)
 
 @tree.command(name="detailpaint", description="detail parameter mode")
 async def detailpaint(interaction: discord.Interaction):
     if authManagement.checkGuild(str(interaction.guild_id)):
-        await interaction.response.send_modal(Detailpaint_ui(sdConnecter))
+        await interaction.response.send_modal(t2i_ui.createDetailpaintui(sdConnecter))
     else:
         await interaction.response.send_message("指揮官，這個伺服器沒有權限使用這個指令。請使用/help查看詳細說明", ephemeral=True)
 
@@ -68,7 +69,5 @@ async def changesd(interaction: discord.Interaction):
         await interaction.response.send_message("修改指令已經送到您的信箱了!", ephemeral=True)
     else:
         await interaction.response.send_message("指揮官，你沒有權限使用這個指令。請使用/help查看詳細說明", ephemeral=True)
-        
-# @tree.command(name="adduser", description="add user to authUser.json")
 
 client.run(variables["TOKEN"])

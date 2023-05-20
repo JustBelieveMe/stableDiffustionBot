@@ -4,7 +4,7 @@ class embedmsg():
     def __init__(self):
         None
 
-    def createEmbed(self, content, modelName):
+    def createEmbed(self, content, modelName, author_name):
         self.content = content
         embedObj = discord.Embed()
         embedObj.add_field(name="prompt", value=self.content["prompt"], inline = False)
@@ -14,4 +14,5 @@ class embedmsg():
         embedObj.add_field(name="CFG", value=self.content["cfg_scale"], inline = True)
         embedObj.add_field(name="Sampler", value=self.content["sampler_name"], inline = True)
         embedObj.add_field(name="model", value=modelName, inline = True)
+        embedObj.add_field(name="Image author", value = author_name, inline = False)
         return embedObj

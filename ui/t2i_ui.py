@@ -1,7 +1,16 @@
 from discord import ui
-from ui.boot_ui import Bootstrap
 from ui.embedmsg import embedmsg
 import discord
+
+class T2i_ui():
+    def __init__(self):
+        None
+    def createDetailpaintui(self, sdConnecter, custom_id=None):
+        self.Detailpaint_ui = Detailpaint_ui(sdConnecter)
+        return self.Detailpaint_ui
+
+    def createEasypaintui(self):
+        None
 
 class Detailpaint_ui(ui.Modal, title='Detailpaint'):
     prompt = ui.TextInput(label='prompt(正面提詞)', style=discord.TextStyle.paragraph)
@@ -10,30 +19,35 @@ class Detailpaint_ui(ui.Modal, title='Detailpaint'):
     sampler = ui.TextInput(label="sampler(取樣器)", style=discord.TextStyle.short, placeholder="Euler, Euler a ....", default="DPM++ SDE Karras")
     CFG = ui.TextInput(label="CFG(提示詞相關性，越高則模型自由度越低(1~30)。)",style=discord.TextStyle.short, placeholder="1-30", default="7", max_length=2)
 
-    def __init__(self, sdConnecter, custom_id=None):
-        if custom_id is None:
-            super().__init__()
-        else:
-            super().__init__(custom_id=custom_id)
+    def __init__(self, sdConnecter, setDefault = None):
+        super().__init__()
         self.sdConnecter = sdConnecter
         self.samplerOption = self.sdConnecter.getSampler()
         self.embed = embedmsg()
+        if setDefault is not None:
+            self.setDefault(setDefault)
+    
+    def setDefault(self, fields):
+        self.prompt.default = fields[0].value
+        self.negative_prompt.default = fields[1].value
+        self.size.default = fields[2].value
+        self.CFG.default = fields[4].value
+        self.sampler.default = fields[5].value
         
-        # self.boot = Bootstrap(self.paintClass, self.custom_id, self)
-
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True)
+        self.EmbedButton = EmbedButton(self.sdConnecter, interaction.user.id)
         if self.paraCheck():
             detailJson = {"prompt": self.prompt.value, "negative_prompt":self.negative_prompt.value, "width":self.width, "height":self.height, "sampler":self.sampler.value, "CFG":self.CFG}
             images_ioObj = await self.sdConnecter.detailPaint(detailJson)
-            self.embedOBJ = self.embed.createEmbed(self.sdConnecter.getPayload(), self.sdConnecter.getCurrModelName())
+            self.embedOBJ = self.embed.createEmbed(self.sdConnecter.getPayload(), self.sdConnecter.getCurrModelName(), interaction.user.name)
             self.imageList = list()
             for image in images_ioObj:
                 self.imageList.append(discord.File(image, filename='image.png'))
-            await interaction.followup.send(embed=self.embedOBJ, files=self.imageList)
+            await interaction.followup.send(embed=self.embedOBJ, files=self.imageList, view=self.EmbedButton, username=interaction.user.name)
             # await interaction.followup.send(f'指揮官，這是你要的結果！', files=images, view=self.boot)
         else:
-            await interaction.followup.send(f'指揮官，你的參數不符合格式！')
+            await interaction.followup.send(f'指揮官，你的參數不符合格式！', ephemeral=True)
             # await interaction.followup.send(f'指揮官，你的參數不符合格式！', view=self.boot)
 
     def paraCheck(self):
@@ -72,9 +86,31 @@ class Easypaint_ui(ui.Modal, title='Easypaint'):
         self.sdConnecter = sdConnecter
 
     async def on_submit(self, interaction: discord.Interaction):
-        await interaction.response.defer(thinking=True)
-        images_ioObj = await self.sdConnecter.easyPaint(self.prompt.value)
+        await interaction.response.defer(thinking=True) # defer the interaction time
+        images_ioObj = await self.sdConnecter.easyPaint(self.prompt.value) # pass to sd, await the image return
+
+        # handling each image as discord file and form a list
         images = list()
         for image in images_ioObj:
             images.append(discord.File(image, 'image.png'))
         await interaction.followup.send(f'指揮官，這是你要的結果！', files=images)
+
+class EmbedButton(discord.ui.View):
+    def __init__(self, sdConnecter, authorID):
+        super().__init__()
+        self.sdConnecter = sdConnecter
+        self.authorID = authorID
+
+    @discord.ui.button(label='重新使用', style=discord.ButtonStyle.green)
+    async def repaint(self, interaction, button):
+        await interaction.response.send_modal(Detailpaint_ui(self.sdConnecter, setDefault=interaction.message.embeds[0].fields))
+
+    @discord.ui.button(label='移除圖片', style=discord.ButtonStyle.red)
+    async def remove(self, interaction, button):
+        if interaction.user.id == self.authorID:
+            await interaction.message.delete()
+        else:
+            await interaction.response.send_message("指揮官，你不是原始作者，不能刪除。", ephemeral=True)
+
+    async def on_timeout(self):
+        None

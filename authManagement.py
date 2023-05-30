@@ -2,8 +2,9 @@ import json
 
 class authManagement():
     def __init__(self) -> None:
+        self.authGuildJsonFile = "./jsonfile/authGuild.json"
         try:
-            with open("./authGuild.json", "r", encoding="utf-8") as authGuildFile:
+            with open(self.authGuildJsonFile, "r", encoding="utf-8") as authGuildFile:
                 self.authGuild = json.load(authGuildFile)["authGuild"]
                 self.authGuildList = self.authGuild.keys()
         except OSError:
@@ -38,7 +39,7 @@ class authManagement():
 
     def changeAuthGuildJson(self, data) -> None:
         try:
-            with open("./authGuild.json", "w", encoding="utf-8") as authGuildFile:
+            with open(self.authGuildJsonFile, "w", encoding="utf-8") as authGuildFile:
                 newJson = json.dumps(data)
                 authGuildFile.write(newJson)
         except OSError:

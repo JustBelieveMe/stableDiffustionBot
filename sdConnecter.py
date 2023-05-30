@@ -2,22 +2,33 @@ import base64
 import requests
 import json
 import io
+import os
 import sys
 import logging
+from PIL import Image, UnidentifiedImageError
 logging.basicConfig(level=logging.INFO)
 
-class sdConnecter():
+class SDConnecter():
     def __init__(self):
-        with open("./payload.json", "r") as payloadFile:
-            self.payloadJson = json.load(payloadFile)
-        
-        with open("./defaultPara.json", "r") as defaultParaFile:
-            self.defaultPara = json.load(defaultParaFile)
+        self.jsonInit()
         self.sd_urlInit()
         self.checkSD()
         self.samplerHandler()
         self.sdModelHandler()
         self.sdOptionHandler()
+
+    def jsonInit(self):
+        with open("./jsonfile/t2ipayload.json", "r") as t2ipayloadFile:
+            self.t2ipayloadJson = json.load(t2ipayloadFile)
+
+        with open("./jsonfile/i2ipayload.json", "r") as i2ipayloadFile:
+            self.i2ipayloadJson = json.load(i2ipayloadFile)
+        
+        with open("./jsonfile/t2idefaultPara.json", "r") as t2idefaultParaFile:
+            self.t2idefaultPara = json.load(t2idefaultParaFile)
+
+        with open("./jsonfile/i2idefaultPara.json", "r") as i2idefaultParaFile:
+            self.i2idefaultPara = json.load(i2idefaultParaFile)
 
     def sd_urlInit(self, baseUrl = "http://localhost:8411"):
         self.url_base = baseUrl
@@ -61,38 +72,82 @@ class sdConnecter():
             self.sdoptions = response.json()
             self.currModelName = self.sdoptions["sd_model_checkpoint"]
 
-    async def easyPaint(self, prompt):
-        self.payloadJson["prompt"] = prompt
-        self.payloadJson["negative_prompt"] = self.defaultPara["negative_prompt"]
-        self.payloadJson["sampler_name"] = self.defaultPara["sampler_name"]
-        self.payloadJson["sampler_index"] = self.defaultPara["sampler_index"]
-        self.payloadJson["batch_size"] = self.defaultPara["batch_size"]
-        self.payloadJson["cfg_scale"] = self.defaultPara["cfg_scale"]
-        self.payloadJson["width"] = self.defaultPara["width"]
-        self.payloadJson["height"] = self.defaultPara["height"]
-        self.payloadJson["steps"] = self.defaultPara["steps"]
+    async def easyt2iPaint(self, prompt):
+        self.t2ipayloadJson["prompt"] = prompt
+        self.t2ipayloadJson["negative_prompt"] = self.t2idefaultPara["negative_prompt"]
+        self.t2ipayloadJson["sampler_name"] = self.t2idefaultPara["sampler_name"]
+        self.t2ipayloadJson["sampler_index"] = self.t2idefaultPara["sampler_index"]
+        self.t2ipayloadJson["batch_size"] = self.t2idefaultPara["batch_size"]
+        self.t2ipayloadJson["cfg_scale"] = self.t2idefaultPara["cfg_scale"]
+        self.t2ipayloadJson["width"] = self.t2idefaultPara["width"]
+        self.t2ipayloadJson["height"] = self.t2idefaultPara["height"]
+        self.t2ipayloadJson["steps"] = self.t2idefaultPara["steps"]
 
-        return self.txt2img(self.payloadJson)
+        return self.txt2img(self.t2ipayloadJson)
 
-    async def detailPaint(self, detailJson):
-        self.payloadJson["prompt"] = detailJson["prompt"]
-        self.payloadJson["negative_prompt"] = detailJson["negative_prompt"]
-        self.payloadJson["sampler_name"] = detailJson["sampler"]
-        self.payloadJson["sampler_index"] = detailJson["sampler"]
-        self.payloadJson["width"] = detailJson["width"]
-        self.payloadJson["height"] = detailJson["height"]
-        self.payloadJson["cfg_scale"] = detailJson["CFG"]
+    async def detailt2iPaint(self, detailJson):
+        self.t2ipayloadJson["prompt"] = detailJson["prompt"]
+        self.t2ipayloadJson["negative_prompt"] = detailJson["negative_prompt"]
+        self.t2ipayloadJson["sampler_name"] = detailJson["sampler"]
+        self.t2ipayloadJson["sampler_index"] = detailJson["sampler"]
+        self.t2ipayloadJson["width"] = detailJson["width"]
+        self.t2ipayloadJson["height"] = detailJson["height"]
+        self.t2ipayloadJson["cfg_scale"] = detailJson["CFG"]
 
-        self.payloadJson["batch_size"] = self.defaultPara["batch_size"]
-        self.payloadJson["steps"] = self.defaultPara["steps"]
+        self.t2ipayloadJson["batch_size"] = self.t2idefaultPara["batch_size"]
+        self.t2ipayloadJson["steps"] = self.t2idefaultPara["steps"]
         
-        return self.txt2img(self.payloadJson)
+        return self.txt2img(self.t2ipayloadJson)
         
     def txt2img(self, jsonData):
         response = requests.post(self.url_txt2img, json = jsonData)
         imgList = list()
         for base64_img in response.json()['images']:
-            imgList.append(self.parseBase64(base64_img))
+            imgList.append(self.decodeBase64(base64_img))
+        return imgList
+    
+    async def easyi2iPaint(self, jsonData, url):
+        self.i2ipayloadJson["init_images"][0] = self.getImageFromUrl(url)
+        self.i2ipayloadJson["prompt"] = jsonData["prompt"]
+        self.i2ipayloadJson["width"] = jsonData["width"]
+        self.i2ipayloadJson["height"] = jsonData["height"]
+        self.i2ipayloadJson["denoising_strength"] = jsonData["denoising_strength"]
+
+        self.i2ipayloadJson["negative_prompt"] = self.i2idefaultPara["negative_prompt"]
+        self.i2ipayloadJson["sampler_name"] = self.i2idefaultPara["sampler_name"]
+        self.i2ipayloadJson["sampler_index"] = self.i2idefaultPara["sampler_index"]
+        self.i2ipayloadJson["cfg_scale"] = self.i2idefaultPara["cfg_scale"]
+        self.i2ipayloadJson["batch_size"] = self.i2idefaultPara["batch_size"]
+        self.i2ipayloadJson["steps"] = self.i2idefaultPara["steps"]
+        return self.img2img(self.i2ipayloadJson)
+
+    async def detaili2iPaint(self, jsonData, url):
+        self.i2ipayloadJson["init_images"][0] = self.getImageFromUrl(url)
+        self.i2ipayloadJson["denoising_strength"] = jsonData["denoising_strength"]
+
+        self.i2ipayloadJson["prompt"] = jsonData["prompt"]
+        self.i2ipayloadJson["negative_prompt"] = jsonData["negative_prompt"]
+        self.i2ipayloadJson["sampler_name"] = jsonData["sampler"]
+        self.i2ipayloadJson["sampler_index"] = jsonData["sampler"]
+        self.i2ipayloadJson["width"] = jsonData["width"]
+        print(self.i2ipayloadJson["width"])
+        self.i2ipayloadJson["height"] = jsonData["height"]
+        print(self.i2ipayloadJson["height"] )
+        self.i2ipayloadJson["cfg_scale"] = jsonData["CFG"]
+
+        self.i2ipayloadJson["batch_size"] = self.i2idefaultPara["batch_size"]
+        self.i2ipayloadJson["steps"] = self.i2idefaultPara["steps"]
+
+        return self.img2img(self.i2ipayloadJson)
+    
+    def img2img(self, jsonData):
+        jsonData["init_images"] = [self.encodeBase64(jsonData["init_images"][0]).decode('utf-8')]
+        response = requests.post(self.url_img2img, json = jsonData)
+        if "error" in response.json():
+            print(response.json())
+        imgList = list()
+        for base64_img in response.json()['images']:
+            imgList.append(self.decodeBase64(base64_img))
         return imgList
 
     def changeSDModel(self, modelName):
@@ -101,16 +156,38 @@ class sdConnecter():
             self.currModelName = modelName
             logging.info(f"model change: {modelName}")
 
-    def parseBase64(self, base64_img):
-        Decoded_image = base64.b64decode(base64_img)
-        image_ioObj = io.BytesIO(Decoded_image)
-        return image_ioObj
+    def encodeBase64(self, image_io):
+        encode_image = base64.b64encode(image_io.getvalue())
+        return encode_image
+
+    def decodeBase64(self, base64_img):
+        decoded_image = base64.b64decode(base64_img)
+        image_io = io.BytesIO(decoded_image)
+        return image_io
+    
+    def getImageFromUrl(self, url):
+        response = requests.get(url)
+        image_io = io.BytesIO(response.content)
+        return image_io
+    
+    def checkImage(self, byteioObj, height_limit=1024, width_limit=1024):
+        try:
+            width, height = Image.open(byteioObj).size
+            if width > width_limit or width < 0 or height > height_limit or height < 0:
+                return [1, width, height]
+        except UnidentifiedImageError:
+            return [2]
+        else:
+            return [0, width, height]
 
     def getSampler(self):
         return self.sampler.keys()
 
-    def getPayload(self):
-        return self.payloadJson
+    def gett2iPayload(self):
+        return self.t2ipayloadJson
+    
+    def geti2iPayload(self):
+        return self.i2ipayloadJson
 
     def getSDmodel(self):
         return self.sdModels.keys()

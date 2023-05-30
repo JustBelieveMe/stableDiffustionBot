@@ -1,0 +1,12 @@
+{
+    "version":"v0.3.0",
+    "title":"Stable Diffusion Discord 機器人 - 厭戰(Warspite)",
+    "upgradeDate":"2023/05/30",
+    "announcement":"v0.3.0版本更新好啦，大家繼續來玩。",
+    "description":"機器人指令的使用需要經過我手動加入白名單伺服器，不然不能用，想使用請找我，而且如你所知，機器人的產圖完全依賴AI(Stable diffusion)計算，因此有機會出現難以言喻的畫面，因此產圖請注意頻道。",
+    "help":"使用/help，展示此幫助訊息",
+    "Text2Img":"透過slash指令執行t2i指令，分為\"/detailt2i\"與\"/easyt2i\"兩種，需要按下discord上的指令選項才能使用。\n\"/detailt2i\"可以輸入prompt/negativePrompt/size/sampler/CFG的參數\n\"/easyt2i\"則僅提供prompt的參數",
+    "Img2Img":"透過單純文字執行i2i指令，分為\"/detaili2i\"與\"/easyi2i\"兩種，將想要轉換的圖片上傳至聊天室，並文字附帶指令。\n\"/detaili2i\"可以輸入prompt/negativePrompt/denoisyStrength/sampler/CFG的參數，\n\"/easyi2i\"則僅提供prompt/denoisyStrength的參數",
+    "Sampler":"Euler a\nEuler\nLMS\nHeun\nDPM2\nDPM2 a\nDPM++ 2S a\nDPM++ 2M\nDPM++ SDE\nDPM fast\nDPM adaptive\nLMS Karras\nDPM2 Karras\nDPM2 a Karras\nDPM++ 2S a Karras\nDPM++ 2M Karras\nDPM++ SDE Karras\nDDIM\nPLMS\nUniPC"
+
+}

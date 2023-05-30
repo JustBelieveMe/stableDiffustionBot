@@ -5,35 +5,35 @@ import json
 from botClient import botClient
 from ui.t2i_ui import T2i_ui
 from ui.sdselect_ui import select_ui
-from sdConnecter import sdConnecter
+from ui.embedmsg import HelpEmbedMessage
+from sdConnecter import SDConnecter
 from authManagement import authManagement
+from messageCommand import MessageCommand
 
 with open("./variables.json", "r", encoding="utf-8") as variableFile:
     variables = json.load(variableFile)
 
-with open("./helpMsg.txt", "r", encoding='utf-8') as helpMsgFile:
-    helpMsgRaw = helpMsgFile.readlines()
-    helpMesg = str()
-    for line in helpMsgRaw:
-        helpMesg += line
+with open("./jsonfile/helpMessage.json", "r", encoding='utf-8') as helpMsgFile:
+    helpMessage = json.load(helpMsgFile)
 
-sdConnecter = sdConnecter()
+sdConnecter = SDConnecter()
 authManagement = authManagement()
-client = botClient(sdConnecter.getCurrModelName())
+client = botClient(sdConnecter.getCurrModelName(), helpMessage["version"])
 tree = client.getTree()
-t2i_ui = T2i_ui()
+t2i_ui = T2i_ui(sdConnecter)
+messageCommand = MessageCommand(sdConnecter)
 
-@tree.command(name="easypaint", description="less parameter mode")
+@tree.command(name="easyt2i", description="less parameter mode")
 async def easypaint(interaction: discord.Interaction):
     if authManagement.checkGuild(str(interaction.guild_id)):
-        await interaction.response.send_modal(t2i_ui.createEasypaintui(sdConnecter))
+        await interaction.response.send_modal(t2i_ui.createEasypaintui())
     else:
         await interaction.response.send_message("指揮官，這個伺服器沒有權限使用這個指令。請使用/help查看詳細說明", ephemeral=True)
 
-@tree.command(name="detailpaint", description="detail parameter mode")
+@tree.command(name="detailt2i", description="detail parameter mode")
 async def detailpaint(interaction: discord.Interaction):
     if authManagement.checkGuild(str(interaction.guild_id)):
-        await interaction.response.send_modal(t2i_ui.createDetailpaintui(sdConnecter))
+        await interaction.response.send_modal(t2i_ui.createDetailpaintui())
     else:
         await interaction.response.send_message("指揮官，這個伺服器沒有權限使用這個指令。請使用/help查看詳細說明", ephemeral=True)
 
@@ -41,7 +41,7 @@ async def detailpaint(interaction: discord.Interaction):
 async def helpMsg(interaction: discord.Interaction):
     if interaction.user.dm_channel is None:
         await interaction.user.create_dm()
-    await interaction.user.dm_channel.send(helpMesg)
+    await interaction.user.dm_channel.send(embed=HelpEmbedMessage(helpMessage))
     await interaction.response.send_message("協助指令已經送到您的信箱了!", ephemeral=True)
 
 @tree.command(name="addguild", description="add auth guild to bot")
@@ -69,5 +69,13 @@ async def changesd(interaction: discord.Interaction):
         await interaction.response.send_message("修改指令已經送到您的信箱了!", ephemeral=True)
     else:
         await interaction.response.send_message("指揮官，你沒有權限使用這個指令。請使用/help查看詳細說明", ephemeral=True)
+
+@client.event
+async def on_message(message: discord.Message):
+    if messageCommand.checkCommand(message.content):
+        if authManagement.checkGuild(str(message.guild.id)):
+            await messageCommand.performCommand(message)
+        else:
+            await message.reply("指揮官，這個伺服器沒有權限使用這個指令。請使用/help查看詳細說明")
 
 client.run(variables["TOKEN"])

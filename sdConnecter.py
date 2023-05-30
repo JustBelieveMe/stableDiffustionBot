@@ -130,9 +130,7 @@ class SDConnecter():
         self.i2ipayloadJson["sampler_name"] = jsonData["sampler"]
         self.i2ipayloadJson["sampler_index"] = jsonData["sampler"]
         self.i2ipayloadJson["width"] = jsonData["width"]
-        print(self.i2ipayloadJson["width"])
         self.i2ipayloadJson["height"] = jsonData["height"]
-        print(self.i2ipayloadJson["height"] )
         self.i2ipayloadJson["cfg_scale"] = jsonData["CFG"]
 
         self.i2ipayloadJson["batch_size"] = self.i2idefaultPara["batch_size"]

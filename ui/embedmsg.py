@@ -16,7 +16,7 @@ class Embedmsg():
                 embedObj.add_field(name="negative prompt", value=self.content["negative_prompt"][0:1000], inline = False)
             else:
                 embedObj.add_field(name="negative prompt", value=self.content["negative_prompt"], inline = False)
-            embedObj.add_field(name="size", value=str(self.content["height"])+"x"+str(self.content["width"]))
+            embedObj.add_field(name="size", value=str(self.content["width"])+"x"+str(self.content["height"]))
             embedObj.add_field(name="steps", value=self.content["steps"], inline = True)
             embedObj.add_field(name="CFG", value=self.content["cfg_scale"], inline = True)
             embedObj.add_field(name="Sampler", value=self.content["sampler_name"], inline = True)
@@ -39,7 +39,7 @@ class Embedmsg():
                 embedObj.add_field(name="negative prompt", value=self.content["negative_prompt"], inline = False)
             embedObj.add_field(name="CFG", value=self.content["cfg_scale"], inline = True)
             embedObj.add_field(name="Sampler", value=self.content["sampler_name"], inline = True)
-        embedObj.add_field(name="size", value=str(self.content["height"])+"x"+str(self.content["width"]))
+        embedObj.add_field(name="size", value=str(self.content["width"])+"x"+str(self.content["height"]))
         embedObj.add_field(name="denoisy strength", value=self.content["denoising_strength"], inline=True)
         embedObj.add_field(name="original image url", value=image_url, inline=True)
         embedObj.add_field(name="model", value=modelName, inline = True)

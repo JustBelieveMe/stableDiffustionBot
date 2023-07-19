@@ -1,0 +1,10 @@
+{
+    "gfpgan_visibility": 0,
+    "codeformer_visibility": 0,
+    "codeformer_weight": 0,
+    "upscaling_resize": 2,
+    "upscaler_1": "None",
+    "upscaler_2": "None",
+    "extras_upscaler_2_visibility": 0,
+    "image": ""
+  }

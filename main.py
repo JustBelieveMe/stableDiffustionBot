@@ -65,7 +65,7 @@ async def changesd(interaction: discord.Interaction):
     if interaction.user.id == 337226622455513090:
         if interaction.user.dm_channel is None:
             await interaction.user.create_dm()
-        await interaction.user.dm_channel.send(view=discord.ui.View().add_item(select_ui(sdConnecter.getSDmodel(), sdConnecter.changeSDModel, "指揮官，模型已經修改成功!", callbacker2 = client.changeDisplayModel)))
+        await interaction.user.dm_channel.send(view=discord.ui.View().add_item(select_ui(sdConnecter.getSDmodel(), sdConnecter.change_SDModel, "指揮官，模型已經修改成功!", callbacker2 = client.changeDisplayModel)))
         await interaction.response.send_message("修改指令已經送到您的信箱了!", ephemeral=True)
     else:
         await interaction.response.send_message("指揮官，你沒有權限使用這個指令。請使用/help查看詳細說明", ephemeral=True)

@@ -53,6 +53,13 @@ class I2IEmbedmsg(discord.Embed):
         self.add_field(name="i2i mode", value = mode, inline=True)
         self.set_image(url=image_url)
 
+class ExtraEmbedmsg(discord.Embed):
+    def __init__(self, author_name, mode, image_url):
+        super().__init__()
+        self.add_field(name="Image uploader", value = author_name, inline=True)
+        self.add_field(name="extra mode", value = mode, inline=True)
+        self.set_image(url=image_url)
+
 class HelpEmbedMessage(discord.Embed):
     def __init__(self, helpMessage):
         super().__init__()

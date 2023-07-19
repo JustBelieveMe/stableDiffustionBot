@@ -56,3 +56,34 @@ class I2iRepaintEmbedButton(discord.ui.View):
             await interaction.message.delete()
         else:
             await interaction.response.send_message("指揮官，你不是原始作者，不能刪除。", ephemeral=True)
+
+class ExtraEmbedButton(discord.ui.View):
+    def __init__(self,sdConnecter, authorID, url, sentModal):
+        super().__init__(timeout=None)
+        self.sdConnecter = sdConnecter
+        self.image_url = url
+        self.authorID = authorID
+        self.sentModal = sentModal
+
+    @discord.ui.button(label='開始使用', style=discord.ButtonStyle.green)
+    async def repaint(self, interaction, button):
+        await interaction.response.send_modal(self.sentModal(self.sdConnecter, self.image_url))
+
+    @discord.ui.button(label='移除圖片', style=discord.ButtonStyle.red)
+    async def remove(self, interaction, button):
+        if interaction.user.id == self.authorID:
+            await interaction.message.delete()
+        else:
+            await interaction.response.send_message("指揮官，你不是原始作者，不能刪除。", ephemeral=True)
+
+class ExtraDeleteEmbedButton(discord.ui.View):
+    def __init__(self, authorID):
+        super().__init__(timeout=None)
+        self.authorID = authorID
+
+    @discord.ui.button(label='移除圖片', style=discord.ButtonStyle.red)
+    async def remove(self, interaction, button):
+        if interaction.user.id == self.authorID:
+            await interaction.message.delete()
+        else:
+            await interaction.response.send_message("指揮官，你不是原始作者，不能刪除。", ephemeral=True)

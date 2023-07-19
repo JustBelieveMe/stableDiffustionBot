@@ -14,6 +14,7 @@ class SDConnecter():
         self.sd_urlInit()
         self.checkSD()
         self.samplerHandler()
+        self.upscalerHandler()
         self.sdModelHandler()
         self.sdOptionHandler()
 
@@ -30,14 +31,19 @@ class SDConnecter():
         with open("./jsonfile/i2idefaultPara.json", "r") as i2idefaultParaFile:
             self.i2idefaultPara = json.load(i2idefaultParaFile)
 
+        with open("./jsonfile/extra1Para.json", 'r') as extra1_json:
+            self.extra1_json = json.load(extra1_json)
+
     def sd_urlInit(self, baseUrl = "http://localhost:8411"):
         self.url_base = baseUrl
         self.sdapi = f"{self.url_base}/sdapi/v1"
         self.url_txt2img = f"{self.sdapi}/txt2img"
         self.url_img2img = f"{self.sdapi}/img2img"
+        self.url_extra1 = f"{self.sdapi}/extra-single-image"
         self.url_sampler = f"{self.sdapi}/samplers"
         self.url_sdModelList = f"{self.sdapi}/sd-models"
         self.url_options = f"{self.sdapi}/options"
+        self.url_upscaler = f"{self.sdapi}/upscalers"
 
     def checkSD(self):
         try:
@@ -57,7 +63,14 @@ class SDConnecter():
             response = requests.get(self.url_sampler)
             self.sampler = dict()
             for sample_method in response.json():
-                self.sampler[sample_method['name']] = 0     
+                self.sampler[sample_method['name']] = 0
+
+    def upscalerHandler(self):
+        if self.checkSD():
+            response = requests.get(self.url_upscaler)
+            self.upscaler = dict()
+            for upscaler_method in response.json():
+                self.upscaler[upscaler_method['name']] = 0 
 
     def sdModelHandler(self):
         if self.checkSD():
@@ -103,7 +116,7 @@ class SDConnecter():
         response = requests.post(self.url_txt2img, json = jsonData)
         imgList = list()
         for base64_img in response.json()['images']:
-            imgList.append(self.decodeBase64(base64_img))
+            imgList.append(self.decode_base64(base64_img))
         return imgList
     
     async def easyi2iPaint(self, jsonData, url):
@@ -139,26 +152,40 @@ class SDConnecter():
         return self.img2img(self.i2ipayloadJson)
     
     def img2img(self, jsonData):
-        jsonData["init_images"] = [self.encodeBase64(jsonData["init_images"][0]).decode('utf-8')]
+        jsonData["init_images"] = [self.encode_base64(jsonData["init_images"][0]).decode('utf-8')]
         response = requests.post(self.url_img2img, json = jsonData)
         if "error" in response.json():
             print(response.json())
-        imgList = list()
+        img_list = list()
         for base64_img in response.json()['images']:
-            imgList.append(self.decodeBase64(base64_img))
-        return imgList
+            img_list.append(self.decode_base64(base64_img))
+        return img_list
+    
+    async def extra_single(self, jsonData, url):
+        self.extra1_json["image"] = self.getImageFromUrl(url)
+        self.extra1_json['upscaling_resize'] = jsonData["upscaling_resize"]
+        self.extra1_json['upscaler_1'] = jsonData["upscaler_1"]
+        self.extra1_json['upscaler_2'] = jsonData["upscaler_2"]
+        return self.extraImage(self.extra1_json)
 
-    def changeSDModel(self, modelName):
+    def extraImage(self, jsonData):
+        jsonData["image"] = self.encode_base64(jsonData['image']).decode('utf-8')
+        response = requests.post(self.url_extra1, json=jsonData)
+        if "error" in response.json():
+            print(response.json())
+        return self.decode_base64(response.json()['image'])
+
+    def change_SDModel(self, modelName):
         if self.checkSD():
             response = requests.post(self.url_options, json={"sd_model_checkpoint":modelName})
             self.currModelName = modelName
             logging.info(f"model change: {modelName}")
 
-    def encodeBase64(self, image_io):
+    def encode_base64(self, image_io):
         encode_image = base64.b64encode(image_io.getvalue())
         return encode_image
 
-    def decodeBase64(self, base64_img):
+    def decode_base64(self, base64_img):
         decoded_image = base64.b64decode(base64_img)
         image_io = io.BytesIO(decoded_image)
         return image_io
@@ -180,6 +207,9 @@ class SDConnecter():
 
     def getSampler(self):
         return self.sampler.keys()
+    
+    def getUpscaler(self):
+        return self.upscaler.keys()
 
     def gett2iPayload(self):
         return self.t2ipayloadJson
